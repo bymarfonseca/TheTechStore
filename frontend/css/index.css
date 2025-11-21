@@ -1,0 +1,64 @@
+.btn.btn-sm.btn-outline-secondary{
+    padding: 6px;
+    margin-left: 10px;
+}
+
+.btn.btn-sm.btn-outline-primary{
+    padding: 6px;
+}
+
+.navbar{
+    justify-content: flex-end;
+}
+
+#titulo{
+    text-align: center;
+    margin-top: 50px;
+}
+
+#mensajebienvenida{
+    margin-top: 10rem;
+    margin-left: 5rem;
+    text-align: center;
+}
+
+.card{
+    padding: 20px;
+    margin: auto;
+}
+
+#nombrecliente{
+    margin-top: auto;
+}
+
+body {
+  font-family: 'Roboto', 'Open Sans', sans-serif; 
+  /* color: #F0F0F0; */
+  /* background-color: #1F2833; */
+}
+
+h1 {
+  font-family: 'Montserrat', sans-serif;
+  color: #00BCD4;
+}
+
+.hero-overlay{
+    position: relative;
+    overflow: hidden;
+    height: 350px;    
+}
+
+.hero-overlay.card-img{
+    object-fit: cover;
+    object-position: center;
+}
+
+.hero-overlay .card-img-overlay {
+    background-color: rgba(0, 0, 0, 0.55);
+    padding: auto;
+}
+
+.overlay-logo {
+    max-width: 150px;
+    height: auto;
+}
