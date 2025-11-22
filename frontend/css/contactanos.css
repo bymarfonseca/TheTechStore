@@ -1,0 +1,57 @@
+body {
+  font-family: 'Montserrat', sans-serif;
+}
+h1, h5{
+  font-family: 'Montserrat', sans-serif;
+  color: #00BCD4;
+}
+
+/* Estilos del Navbar*/
+.btn.btn-outline-secondary{
+    padding: 6px;
+    margin-left: 10px;
+}
+.btn.btn-outline-primary{
+    padding: 6px;
+    margin-left: 10px;
+    margin-bottom: 10px;
+}
+.navbar{
+    justify-content: flex-end;
+}
+.nav-link{
+    margin-left: 10px;
+}
+
+/* Estilos de Título y descripción de la página de contáctanos */
+#titulocontacto{
+    margin-top: 50px;
+    text-align: center;
+}
+
+/* Estilos del form de contactro*/
+#formcontacto{
+    border: 1px solid #00BCD4;
+    border-radius: 15px;
+    padding: 2rem;
+    box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.1);
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 600px;
+}
+.btn-container{
+    justify-content: center;
+    align-items: center;
+    display: flex;
+}
+.btn-primary{
+    width: 100%;
+    color: white;
+    background-color: #00BCD4;
+    border-color: #00BCD4;
+}
+
+.btn-primary:hover{
+    color: white;
+    background-color: #016c7a;
+}

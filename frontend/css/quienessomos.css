@@ -1,0 +1,37 @@
+body {
+  font-family: 'Montserrat', sans-serif;
+}
+h1, h5{
+  font-family: 'Montserrat', sans-serif;
+  color: #00BCD4;
+}
+
+/* Estilos del Navbar*/
+.btn.btn-outline-secondary{
+    padding: 6px;
+    margin-left: 10px;
+}
+.btn.btn-outline-primary{
+    padding: 6px;
+    margin-left: 10px;
+    margin-bottom: 10px;
+}
+.navbar{
+    justify-content: flex-end;
+}
+.nav-link{
+    margin-left: 10px;
+}
+
+/* Estilos del Título y su Descripción */
+#parrafodesc{
+    text-align: justify;
+    margin-top: 25px;
+    margin-bottom: 25px;
+    margin-left: 25px;
+    margin-right: 25px;
+}
+#titulo{
+    text-align: center;
+    margin-top: 25px;
+}

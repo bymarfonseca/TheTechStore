@@ -7,7 +7,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
     <link rel="stylesheet" href="/frontend/css/index.css">
 
-    <!--Google Fonts de la fuente Montserrat y Roboto-->
+    <!--Google Fonts de la fuente Montserrat-->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
@@ -17,8 +17,9 @@
     <nav class="navbar navbar-expand-lg bg-body-tertiary">
         <div class="container-fluid">
             <a class="navbar-brand" href="#">
-                <img src="/img/logothetechstore.png" alt="Bootstrap" width="55" height="70">
+                <img src="/img/logothetechstore.png" alt="logo" width="55" height="70">
             </a>
+            
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -26,7 +27,7 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link active" aria-current="page" href="#">Inicio</a>
+                        <a class="nav-link active" aria-current="page" href="/frontend/html/index.html">Inicio</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="/frontend/html/quienessomos.html">¿Quiénes somos?</a>
@@ -35,13 +36,13 @@
                         <a class="nav-link" href="#">Catálogo</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Contáctanos</a>
+                        <a class="nav-link" href="/frontend/html/contactanos.html">Contáctanos</a>
                     </li>
                     <li class="nav-item">
-                        <button class="btn btn-sm btn-outline-primary" type="button">Iniciar Sesión</button>
+                        <button class="btn btn-outline-primary" type="button">Iniciar Sesión</button>
                     </li>
                     <li class="nav-item">
-                        <button class="btn btn-sm btn-outline-secondary" type="button">Registrarse</button>
+                        <button class="btn btn-outline-secondary" type="button">Registrarse</button>
                     </li>
                 </ul>
             </div>
@@ -56,7 +57,8 @@
     <div class="container-fluid" id="bienvenida">
         <div class="card text-bg-dark hero-overlay">
             <img src="/img/fotoinicio2.png" class="card-img img-fluid" alt="iniciocompu">
-            <div class="card-img-overlay d-flex flex-column justify-content-center align-items-center text-center"">
+            
+           <div class="card-img-overlay flex-column justify-content-center align-items-center text-center">
                 <h5 class="card-title">Simplificamos la tecnología para ti.</h5>
                 <p class="card-text">¡Tu próximo gadget te está esperando!</p>
                 <img src="/img/logothetechstore.png" alt="logo" class="overlay-logo mt-4">
@@ -65,10 +67,10 @@
     </div>
 
     <div class="container-fluid">
-        <p>¡Algunas reseñas de nuestros clientes!</p>
+        <h5 id="descreseña">¡Algunas reseñas de nuestros clientes!</h5>
 
-        <div class="card-group">
-            <div class="card">
+        <div class="row justify-content-center g-5">
+            <div class="card col-md-4 mb-4">
                 <div class="card-body">
                     <img src="/img/cincoestrellas.png" alt="calificacion" class="w-50">
                     <h5 class="card-title">¡Mi tienda favorita!</h5>
@@ -83,7 +85,7 @@
                     </div>
                 </div>
             </div>
-            <div class="card">
+            <div class="card col-md-4 mb-4">
                 <div class="card-body">
                     <img src="/img/cincoestrellas.png" alt="calificacion" class="w-50">
                     <h5 class="card-title">¡La mejor selección de equipos y accesorios!</h5>
@@ -98,7 +100,7 @@
                     </div>
                 </div>
             </div>
-            <div class="card">
+            <div class="card col-md-4 mb-4">
                 <div class="card-body">
                     <img src="/img/cincoestrellas.png" alt="calificacion" class="w-50">
                     <h5 class="card-title">¡Encontré justo lo que buscaba!</h5>
@@ -117,6 +119,5 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-
 </body>
 </html>
