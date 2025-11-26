@@ -1,2 +1,2 @@
 # TheTechStore
-Proyecto Integrador de Aprendizaje del Laboratorio de Programación Web.
+Producto Integrador de Aprendizaje del Laboratorio de Programación Web.
