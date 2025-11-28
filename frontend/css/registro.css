@@ -1,26 +1,27 @@
 body {
   font-family: 'Montserrat', sans-serif;
 }
-h1, h5{
+h1,h5{
   font-family: 'Montserrat', sans-serif;
   color: #00BCD4;
 }
 
 /* Estilos del Navbar*/
-.btn.btn-outline-secondary{
-    padding: 6px;
-    margin-left: 10px;
-}
-.btn.btn-outline-primary{
-    padding: 6px;
-    margin-left: 10px;
-    margin-bottom: 10px;
+.btn.btn-primary{
+    background-color: #507DBC;
+    margin-right: 3px;
+    outline-color: #507DBC;
 }
 .navbar{
     justify-content: flex-end;
+    background-color: #E6F5FF;
+}
+.btn.btn-secondary{
+    background-color: #92DCE5;
+    margin-right: 3px;
 }
 .nav-link{
-    margin-left: 10px;
+    margin-left: 10px
 }
 
 /* Estilos de Título*/
