@@ -10,7 +10,11 @@ h1,h5{
 .btn.btn-primary{
     background-color: #507DBC;
     margin-right: 3px;
-    outline-color: #507DBC;
+    border-color: #507DBC;
+}
+.btn.btn-primary:hover{
+    background-color: #3a5a87;
+    border-color: #3a5a87;
 }
 .navbar{
     justify-content: flex-end;
@@ -19,11 +23,15 @@ h1,h5{
 .btn.btn-secondary{
     background-color: #92DCE5;
     margin-right: 3px;
+    border-color: #92DCE5;
+}
+.btn.btn-secondary:hover{
+    background-color: #5a878d;
+    border-color: #5a878d;
 }
 .nav-link{
     margin-left: 10px
 }
-
 
 /* Estilos del Título */
 #titulo{
