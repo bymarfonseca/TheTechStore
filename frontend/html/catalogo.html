@@ -24,24 +24,20 @@
 
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" aria-current="page" href="index.html">Inicio</a> 
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="quienessomos.html">¿Quiénes somos?</a> 
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="catalogo.html">Catálogo</a> 
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" href="contactanos.html">Contáctanos</a> 
-                    </li>
-                    <li class="nav-item">
+                    <li class="nav-item"><a class="nav-link" aria-current="page" href="index.html">Inicio</a></li>
+                    <li class="nav-item"><a class="nav-link" href="quienessomos.html">¿Quiénes somos?</a></li>
+                    <li class="nav-item"><a class="nav-link" href="catalogo.html">Catálogo</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="contactanos.html">Contáctanos</a></li>
+                    
+                    <li class="nav-item" id="authButtons"> 
                         <a href="login.html" class="btn btn-primary">Iniciar Sesión</a>
-                    </li>
-                    <li class="nav-item">
                         <a href="registro.html" class="btn btn-secondary">Registrarse</a>
                     </li>
+
+<li class="nav-item d-flex align-items-center" id="userInfo" style="display: none;"> 
+    <span class="nav-link">Hola, <strong id="userNameDisplay">Usuario</strong>!</span>
+    <button class="btn btn-danger btn-sm" id="logoutButton">Cerrar Sesión</button>
+</li>
                 </ul>
             </div>
         </div>
@@ -85,12 +81,14 @@
     // URL base de tu backend Node.js
     const API_URL = 'http://localhost:3000';
     const catalogoDinamico = document.getElementById('catalogoDinamico');
-    let filtrosActuales = {}; // Objeto para mantener el estado de los filtros y la búsqueda
+    let filtrosActuales = {}; // Objeto para mantener el estado de los filtros
 
-    // Función para generar el HTML de una tarjeta de producto
+    // ==========================================================
+    // FUNCIÓN: GENERAR CARTA DE PRODUCTO
+    // ==========================================================
     function crearCardProducto(producto) {
         
-        // RUTA DE IMAGEN CORREGIDA: Usando la ruta absoluta del proyecto para evitar el 404
+        // RUTA DE IMAGEN CORREGIDA
         const imagenSrc = `/TheTechStore/img/${producto.imagen || 'default.png'}`;
         
         return `
@@ -106,7 +104,7 @@
                                 <a href="pagproducto.html?id=${producto.id_producto}" class="btn btn-primary">Ver información</a>
                             </div>
                             <div class="col-6">
-                                <a href="#" class="btn btn-primary agregar-carrito" data-id-producto="${producto.id_producto}">Agregar al carrito</a>
+                                <button class="btn btn-success agregar-carrito" data-id-producto="${producto.id_producto}">Agregar al carrito</button>
                             </div>
                         </div>
                     </div>
@@ -114,16 +112,58 @@
             </div>
         `;
     }
+
+    // ==========================================================
+    // FUNCIÓN: VERIFICAR SESIÓN Y RENDERIZAR BARRA DE NAVEGACIÓN
+    // ==========================================================
+    async function checkSessionAndRenderNav() {
+        try {
+            const response = await fetch(`${API_URL}/api/session`);
+            const sessionData = await response.json();
+
+            const authButtons = document.getElementById('authButtons');
+            const userInfo = document.getElementById('userInfo');
+
+            if (sessionData.isLoggedIn) {
+                // Usuario logueado: Ocultar botones de Login/Registro
+                if (authButtons) authButtons.style.display = 'none';
+                
+                // Mostrar nombre y botón de logout
+                if (userInfo) {
+                   document.getElementById('userNameDisplay').textContent = sessionData.nombre;
+                    userInfo.style.display = 'flex';
+                }
+                
+                // Listener al botón de Cerrar Sesión
+                document.getElementById('logoutButton').addEventListener('click', async () => {
+                    const logoutResponse = await fetch(`${API_URL}/api/logout`, { method: 'POST' });
+                    if (logoutResponse.ok) {
+                        alert('Sesión cerrada correctamente.');
+                        window.location.href = 'index.html'; 
+                    } else {
+                        alert('Error al cerrar sesión.');
+                    }
+                });
+
+            } else {
+                // Usuario NO logueado
+                if (authButtons) authButtons.style.display = 'flex';
+                if (userInfo) userInfo.style.display = 'none';
+            }
+        } catch (error) {
+            console.error('Error verificando sesión:', error);
+        }
+    }
         
-    // Función principal para llamar al backend y actualizar el catálogo
+    // ==========================================================
+    // FUNCIÓN: CARGAR CATÁLOGO (FILTRADO Y BÚSQUEDA)
+    // ==========================================================
     async function cargarCatalogo(nuevosFiltros = {}) {
         
-        // Combina los filtros actuales con los nuevos
         filtrosActuales = { ...filtrosActuales, ...nuevosFiltros };
         
         let url = `${API_URL}/api/productos/filtrar?`;
         
-        // Construir la URL con todos los parámetros de filtrosActuales
         for (const key in filtrosActuales) {
             if (filtrosActuales[key]) {
                 url += `${key}=${filtrosActuales[key]}&`;
@@ -133,19 +173,15 @@
         url = url.endsWith('&') ? url.slice(0, -1) : url;
 
         try {
-            console.log(`[API CALL] Intentando conectar a Node.js en: ${url}`);
-            
             const response = await fetch(url);
-
+            
             if (!response.ok) {
-                console.error(`[SERVER ERROR] El servidor devolvió un error: ${response.status}`);
                 throw new Error('Error al obtener productos del servidor.');
             }
-            console.log(`[CONEXIÓN OK] El servidor Node.js (3000) respondió con éxito (Status: ${response.status}).`);
             
             const productos = await response.json();
             
-            // LÍNEA CRÍTICA: Limpia el contenido anterior antes de renderizar
+            // LÍNEA CRÍTICA: Limpia el contenido anterior
             catalogoDinamico.innerHTML = ''; 
             
             if (productos.length === 0) {
@@ -159,17 +195,21 @@
             });
 
         } catch (error) {
-            console.error(`[CONEXIÓN FALLIDA] NO se pudo establecer la conexión con ${API_URL}.`, error);
-            catalogoDinamico.innerHTML = '<div class="col-12"><p class="text-danger text-center mt-5">Error: Asegúrate que el servidor Node.js (port 3000) y XAMPP (MySQL/Apache) estén activos.</p></div>';
+            console.error(`[CONEXIÓN FALLIDA] Error al cargar catálogo:`, error);
+            catalogoDinamico.innerHTML = '<div class="col-12"><p class="text-danger text-center mt-5">Error: No se pudo cargar el catálogo. Verifica el servidor Node.js.</p></div>';
         }
     }
         
-    // LISTENERS DE EVENTOS (BOTONES)
+    // ==========================================================
+    // LISTENERS DE EVENTOS PRINCIPALES
+    // ==========================================================
+    
     document.addEventListener('DOMContentLoaded', () => {
-        // CARGA INICIAL (Prueba la conexión inmediatamente al iniciar la página)
+        // LLAMADA INICIAL: Carga la barra de navegación y el catálogo
+        checkSessionAndRenderNav();
         cargarCatalogo();
 
-        // 1. LISTENERS DE ORDENAMIENTO (PRECIO)
+        // 1. LISTENERS DE FILTRADO Y ORDENAMIENTO (Botones)
         document.getElementById('ordenAscendente').addEventListener('click', (e) => {
             cargarCatalogo({ orden: e.target.getAttribute('data-orden') });
         });
@@ -178,7 +218,6 @@
             cargarCatalogo({ orden: e.target.getAttribute('data-orden') });
         });
 
-        // 2. LISTENERS DE FILTRADO POR CATEGORÍA
         document.getElementById('filtroPortatiles').addEventListener('click', (e) => {
             cargarCatalogo({ categoria: e.target.getAttribute('data-id-categoria') }); 
         });
@@ -188,25 +227,67 @@
         });
         
         document.getElementById('filtroTodos').addEventListener('click', () => {
-            // Elimina todos los parámetros de filtro y carga el catálogo completo
             filtrosActuales = {}; 
             cargarCatalogo({}); 
         });
 
-       // 3. LISTENER DEL BUSCADOR (CORREGIDO)
+        // 2. LISTENER DEL BUSCADOR
         document.getElementById('formBusqueda').addEventListener('submit', (e) => {
-            
-            // 1. Evita que la página se recargue (¡CRUCIAL!)
             e.preventDefault(); 
-            
             const terminoBusqueda = document.getElementById('inputBusqueda').value.trim();
-
+            
             if (terminoBusqueda !== '') {
-                // 2. Ejecuta la búsqueda. Al hacer una nueva búsqueda, limpiamos la categoría y el orden para enfocarnos solo en el resultado de la búsqueda.
-                cargarCatalogo({ busqueda: terminoBusqueda, categoria: '', orden: '' });
+                 cargarCatalogo({ busqueda: terminoBusqueda, categoria: '', orden: '' });
             } else {
-                // 3. Si el campo está vacío, recarga el catálogo completo
-                cargarCatalogo({}); 
+                 cargarCatalogo({ busqueda: '', categoria: filtrosActuales.categoria, orden: filtrosActuales.orden });
+            }
+        });
+
+        // 3. LISTENER GLOBAL PARA AGREGAR AL CARRITO (Función Nueva)
+        document.addEventListener('click', async (e) => {
+            // Verifica si el clic fue en un botón con la clase 'agregar-carrito'
+            if (e.target.classList.contains('agregar-carrito')) {
+                e.preventDefault(); 
+                
+                // Obtiene el ID del producto que se generó dinámicamente
+                const idProducto = e.target.getAttribute('data-id-producto');
+                const cantidad = 1; 
+                
+                try {
+                    const response = await fetch(`${API_URL}/api/carrito/agregar`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id_producto: idProducto, cantidad })
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        alert(`¡Producto ID ${idProducto} agregado!`);
+                    } else if (response.status === 401) {
+                        // Si el servidor devuelve 401 (no autorizado)
+                        alert('Debes iniciar sesión para agregar productos.');
+                        window.location.href = 'login.html'; 
+                    } else {
+                        alert(`Error: ${data.error || 'No se pudo agregar el producto.'}`);
+                    }
+
+                } catch (error) {
+                    console.error('Error de conexión:', error);
+                    alert('No se pudo conectar al servidor Node.js.');
+                }
+            }
+        });
+
+        // 4. LISTENER DEL BOTÓN CARRITO
+        document.getElementById('botoncarrito').addEventListener('click', async () => {
+            const response = await fetch(`${API_URL}/api/session`);
+            const sessionData = await response.json();
+
+            if (sessionData.isLoggedIn) {
+                window.location.href = 'carrito.html'; // Dirige al carrito
+            } else {
+                window.location.href = 'login.html'; // Dirige al login
             }
         });
     });
