@@ -19,6 +19,7 @@ h1,h5{
 .navbar{
     justify-content: flex-end;
     background-color: #E6F5FF;
+    margin-bottom: 15px;
 }
 .btn.btn-secondary{
     background-color: #92DCE5;
@@ -39,23 +40,31 @@ h1,h5{
     align-content: end;
 }
 
-/* Estilos cuadrícula */
-.card {
-    box-shadow: none; 
-    margin-top: 10px;
-    padding: auto;
-    height: 100%; 
-    display: flex; 
-    flex-direction: column; 
+#agregarcarr{
+    margin-top: 15px;
 }
 
-/* Estilos botones filtros*/
-.btn.btn-warning{
+/* Estilos botón regresar*/
+.btn{
     background-color: #00BCD4;
     border-color: #00BCD4;
-    color: white;
 }
-.btn.btn-warning:hover{
+.btn:hover{
     background-color: #018596;
     border-color: #018596;
+}
+
+/* Estilos de la descripción */
+#descripcion{
+    margin-top: 10px;
+}
+
+#descripciontit{
+    margin-left: 15px;
+    margin-top: 10px;
+}
+
+#series11{
+    width: 10;
+    height: 20px;
 }
