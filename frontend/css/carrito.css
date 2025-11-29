@@ -23,6 +23,7 @@ h1,h5{
 .btn.btn-secondary{
     background-color: #92DCE5;
     margin-right: 3px;
+    margin-left: 3px;
     border-color: #92DCE5;
 }
 .btn.btn-secondary:hover{
