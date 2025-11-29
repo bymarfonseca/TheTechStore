@@ -19,6 +19,7 @@ h1,h5{
 .navbar{
     justify-content: flex-end;
     background-color: #E6F5FF;
+    margin-bottom: 15px;
 }
 .btn.btn-secondary{
     background-color: #92DCE5;
@@ -39,11 +40,14 @@ h1,h5{
     align-content: end;
 }
 
+#agregarcarr{
+    margin-top: 15px;
+}
+
 /* Estilos botón regresar*/
 .btn{
     background-color: #00BCD4;
     border-color: #00BCD4;
-    margin-top: 15px;
 }
 .btn:hover{
     background-color: #018596;
@@ -58,4 +62,9 @@ h1,h5{
 #descripciontit{
     margin-left: 15px;
     margin-top: 10px;
+}
+
+#series11{
+    width: 10;
+    height: 20px;
 }
