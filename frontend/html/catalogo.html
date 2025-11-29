@@ -5,10 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Catálogo</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="../../frontend/css/catalogo.css">
-
-    <!--Google Fonts de la fuente Montserrat-->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="../css/catalogo.css"> <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
 </head>
@@ -27,17 +24,13 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" aria-current="page" href="../../frontend/html/index.html">Inicio</a>
-                    </li>
+                        <a class="nav-link" aria-current="page" href="index.html">Inicio</a> </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="../../frontend/html/quienessomos.html">¿Quiénes somos?</a>
-                    </li>
+                        <a class="nav-link" href="quienessomos.html">¿Quiénes somos?</a> </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="../../frontend/html/catalogo.html">Catálogo</a>
-                    </li>
+                        <a class="nav-link" href="catalogo.html">Catálogo</a> </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="../../frontend/html/contactanos.html">Contáctanos</a>
-                    </li>
+                        <a class="nav-link active" href="contactanos.html">Contáctanos</a> </li>
                     <li class="nav-item">
                         <a href="login.html" class="btn btn-primary">Iniciar Sesión</a>
                     </li>
@@ -52,13 +45,13 @@
     <div class="container-fluid">
         <div class="row">
             <div class="col-md-10">
-
             </div>
             <div class="col-md-2">
                 <img src="../../img/carrito.png" id="botoncarrito" alt="carrito">
             </div>
         </div>
-        <div class="row">
+        
+        <div class="row mb-4">
             <div class="col-3">
                 <form class="d-flex" role="search">
                     <input class="form-control me-2" type="search" placeholder="Buscar..." aria-label="Search"/>
@@ -66,171 +59,146 @@
                 </form>
             </div>
             <div class="col-9">
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <button type="button" class="btn btn-warning">Precio Ascendente</button>
-                <button type="button" class="btn btn-warning">Precio Descendente</button>
-                <button type="button" class="btn btn-warning">Sección Productos</button>
-                <button type="button" class="btn btn-warning">Sección Accesorios</button>
+                <button type="button" class="btn btn-warning" id="ordenAscendente" data-orden="asc">Precio Ascendente</button>
+                <button type="button" class="btn btn-warning" id="ordenDescendente" data-orden="desc">Precio Descendente</button>
+                
+                <button type="button" class="btn btn-warning" id="filtroPortatiles" data-id-categoria="1">Sección Productos</button> 
+                <button type="button" class="btn btn-warning" id="filtroAccesorios" data-id-categoria="3">Sección Accesorios</button>
+                <button type="button" class="btn btn-success" id="filtroTodos">Mostrar Todos</button>
             </div>
         </div>
     </div>
 
     <div class="container-fluid">
-        <div class="row g-0">
-            <div class="col-6 col-lg-3 d-flex">
-                <div class="card">
-                    <img src="../../img/macairm5.png" class="card-img-top mt-5" alt="...">
-                    <div class="card-body">
-                        <h5 class="card-title mt-4">Computadora MacBook Air M5</h5>
-                        <p class="card-text">$37,999</p>
-                        <div class="row">
-                            <div class="col-6">
-                                <a href="pagmacbook.html" class="btn btn-primary">Ver información</a>
-                            </div>
-                            <div class="col-6">
-                                <a href="#" class="btn btn-primary">Agregar al carrito</a>
-                            </div>
-                        </div>
-                        
-                    </div>
-                </div>
+        <div class="row g-0" id="catalogoDinamico">
             </div>
-            <div class="col-6 col-lg-3 d-flex">
-                <div class="card">
-                    <img src="../../img/lenovo.avif" class="card-img-top" alt="...">
-                    <div class="card-body">
-                        <h5 class="card-title mt-4">Computadora Lenovo IdeaPad 17 Gen</h5>
-                        <p class="card-text">$27,999</p>
-                        <div class="row">
-                            <div class="col-6">
-                                <a href="paglenovo.html" class="btn btn-primary">Ver información</a>
-                            </div>
-                            <div class="col-6">
-                                <a href="#" class="btn btn-primary">Agregar al carrito</a>
-                            </div>
-                        </div>
-                        
-                    </div>
-                </div>
-            </div>
-            <div class="col-6 col-lg-3 d-flex">
-                <div class="card">
-                    <img src="../../img/cargmac.jpeg" class="card-img-top" alt="...">
-                    <div class="card-body">
-                        <h5 class="card-title">Cargador Macbook</h5>
-                        <p class="card-text">$1,999</p>
-                        <div class="row">
-                            <div class="col-6">
-                                <a href="pagcargmac.html" class="btn btn-primary">Ver información</a>
-                            </div>
-                            <div class="col-6">
-                                <a href="#" class="btn btn-primary">Agregar al carrito</a>
-                            </div>
-                        </div>
-                        
-                    </div>
-                </div>
-            </div>
-            <div class="col-6 col-lg-3 d-flex">
-                <div class="card">
-                    <img src="../../img/carglenovo.avif" class="card-img-top" alt="...">
-                    <div class="card-body">
-                        <h5 class="card-title">Cargador Lenovo</h5>
-                        <p class="card-text">$497</p>
-                        <div class="row">
-                            <div class="col-6">
-                                <a href="pagcarglen.html" class="btn btn-primary">Ver información</a>
-                            </div>
-                            <div class="col-6">
-                                <a href="#" class="btn btn-primary">Agregar al carrito</a>
-                            </div>
-                        </div>
-                        
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="row g-0">
-            <div class="col-6 col-lg-3 d-flex">
-                <div class="card">
-                    <img src="../../img/17promax.jpeg" class="card-img-top" alt="...">
-                    <div class="card-body">
-                        <h5 class="card-title">iPhone 17 Pro Max</h5>
-                        <p class="card-text">$30,999</p>
-                        <div class="row">
-                            <div class="col-6">
-                                <a href="pagiph17.html" class="btn btn-primary">Ver información</a>
-                            </div>
-                            <div class="col-6">
-                                <a href="#" class="btn btn-primary">Agregar al carrito</a>
-                            </div>
-                        </div>
-                        
-                    </div>
-                </div>
-            </div>
-            <div class="col-6 col-lg-3 d-flex">
-                <div class="card">
-                    <img src="../../img/flip.png" class="card-img-top mt-5" alt="...">
-                    <div class="card-body">
-                        <h5 class="card-title mt-3">Samsung Flip 7</h5>
-                        <p class="card-text">$17,520</p>
-                        <div class="row">
-                            <div class="col-6">
-                                <a href="pagflip7.html" class="btn btn-primary">Ver información</a>
-                            </div>
-                            <div class="col-6">
-                                <a href="#" class="btn btn-primary">Agregar al carrito</a>
-                            </div>
-                        </div>
-                        
-                    </div>
-                </div>
-            </div>
-            <div class="col-6 col-lg-3 d-flex">
-               <div class="card">
-                    <img src="../../img/cargc.webp" class="card-img-top" alt="...">
-                    <div class="card-body">
-                        <h5 class="card-title">Cargador tipo C</h5>
-                        <p class="card-text">$699</p>
-                        <div class="row">
-                            <div class="col-6">
-                                <a href="pagcargc.html" class="btn btn-primary">Ver información</a>
-                            </div>
-                            <div class="col-6">
-                                <a href="#" class="btn btn-primary">Agregar al carrito</a>
-                            </div>
-                        </div>
-                        
-                    </div>
-                </div>
-            </div>
-            <div class="col-6 col-lg-3 d-flex">
-                <div class="card">
-                    <img src="../../img/series11.png" class="card-img-top w-75" alt="...">
-                    <div class="card-body">
-                        <h5 class="card-title mt-1">Apple Watch Series 11</h5>
-                        <p class="card-text">$9,499</p>
-                        <div class="row">
-                            <div class="col-6">
-                                <a href="pagwatch.html" class="btn btn-primary">Ver información</a>
-                            </div>
-                            <div class="col-6">
-                                <a href="#" class="btn btn-primary">Agregar al carrito</a>
-                            </div>
-                        </div>
-                        
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 
 
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script>
+    // URL base de tu backend Node.js
+    const API_URL = 'http://localhost:3000';
+    const catalogoDinamico = document.getElementById('catalogoDinamico');
+
+    // Función para generar el HTML de una tarjeta de producto
+    function crearCardProducto(producto) {
+        
+        // RUTA DE IMAGEN CORREGIDA para estabilidad en XAMPP y Node.js
+        // Usamos la ruta absoluta que incluye la carpeta de tu proyecto.
+        const imagenSrc = `/TheTechStore/img/${producto.imagen || 'default.png'}`;
+        
+        return `
+            <div class="col-6 col-lg-3 d-flex">
+                <div class="card">
+                    <img src="${imagenSrc}" class="card-img-top mt-5" alt="${producto.nombre}">
+                    <div class="card-body">
+                        <h5 class="card-title mt-4">${producto.nombre}</h5>
+                        <p class="card-text">Categoría: ${producto.nombre_categoria}</p>
+                        <p class="card-text">$${producto.precio}</p>
+                        <div class="row">
+                            <div class="col-6">
+                                <a href="pagproducto.html?id=${producto.id_producto}" class="btn btn-primary">Ver información</a>
+                            </div>
+                            <div class="col-6">
+                                <a href="#" class="btn btn-primary agregar-carrito" data-id-producto="${producto.id_producto}">Agregar</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+        
+    // Función principal para llamar al backend y actualizar el catálogo
+    async function cargarCatalogo(filtros = {}) {
+        let url = `${API_URL}/api/productos/filtrar?`;
+        
+        // Construir la URL con parámetros de filtro
+        if (filtros.orden) {
+            url += `orden=${filtros.orden}&`;
+        }
+        if (filtros.categoria) {
+            url += `categoria=${filtros.categoria}&`;
+        }
+        
+        url = url.endsWith('&') ? url.slice(0, -1) : url;
+
+        try {
+            console.log(`[API CALL] Intentando conectar a Node.js en: ${url}`);
+            
+            const response = await fetch(url);
+
+            if (response.ok) {
+                console.log(`[CONEXIÓN OK] El servidor Node.js (3000) respondió con éxito (Status: ${response.status}).`);
+            } else {
+                console.error(`[SERVER ERROR] El servidor Node.js devolvió un error de aplicación: ${response.status} ${response.statusText}`);
+                catalogoDinamico.innerHTML = '<div class="col-12"><p class="text-danger text-center mt-5">Error de servidor al cargar productos. Revisa la terminal de Node.js.</p></div>';
+                return;
+            }
+
+            const productos = await response.json();
+            console.log(`[API DATA] Productos recibidos: ${productos.length}`);
+            
+            // Reemplazar el contenido para LIMPIAR LA PANTALLA ANTES DE MOSTRAR RESULTADOS
+            catalogoDinamico.innerHTML = ''; 
+            
+            if (productos.length === 0) {
+                catalogoDinamico.innerHTML = '<div class="col-12"><p class="text-center mt-5">No se encontraron productos con estos filtros.</p></div>';
+                return;
+            }
+
+            // Insertar cada producto
+            productos.forEach(producto => {
+                catalogoDinamico.innerHTML += crearCardProducto(producto);
+            });
+
+        } catch (error) {
+            console.error(`[CONEXIÓN FALLIDA] NO se pudo establecer la conexión con ${API_URL}.`, error);
+            catalogoDinamico.innerHTML = '<div class="col-12"><p class="text-danger text-center mt-5">Error: Asegúrate que el servidor Node.js (port 3000) y XAMPP (MySQL/Apache) estén activos.</p></div>';
+        }
+    }
+        
+    // LISTENERS DE EVENTOS (BOTONES)
+    document.addEventListener('DOMContentLoaded', () => {
+        // CARGA INICIAL (Prueba la conexión inmediatamente al iniciar la página)
+        cargarCatalogo();
+
+        // LISTENERS DE ORDENAMIENTO (PRECIO)
+        document.getElementById('ordenAscendente').addEventListener('click', (e) => {
+            cargarCatalogo({ orden: e.target.getAttribute('data-orden') });
+        });
+
+        document.getElementById('ordenDescendente').addEventListener('click', (e) => {
+            cargarCatalogo({ orden: e.target.getAttribute('data-orden') });
+        });
+
+        // LISTENERS DE FILTRADO POR CATEGORÍA
+        document.getElementById('filtroPortatiles').addEventListener('click', (e) => {
+            cargarCatalogo({ categoria: e.target.getAttribute('data-id-categoria') }); 
+        });
+
+        document.getElementById('filtroAccesorios').addEventListener('click', (e) => {
+            cargarCatalogo({ categoria: e.target.getAttribute('data-id-categoria') });
+        });
+        
+        document.getElementById('filtroTodos').addEventListener('click', () => {
+            cargarCatalogo({}); // Carga sin filtros
+        });
+
+        // LISTENER DEL CARRITO (Verificación de Sesión)
+        document.getElementById('botoncarrito').addEventListener('click', async () => {
+            const response = await fetch(`${API_URL}/api/session`);
+            const sessionData = await response.json();
+
+            if (sessionData.isLoggedIn) {
+                window.location.href = 'carrito.html';
+            } else {
+                window.location.href = 'login.html';
+            }
+        });
+    });
+
+    </script>
 </body>
 </html>
