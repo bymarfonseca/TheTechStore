@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Catálogo</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="../css/catalogo.css"> <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="../css/catalogo.css"> 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
 </head>
@@ -24,13 +25,17 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" aria-current="page" href="index.html">Inicio</a> </li>
+                        <a class="nav-link" aria-current="page" href="index.html">Inicio</a> 
+                    </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="quienessomos.html">¿Quiénes somos?</a> </li>
+                        <a class="nav-link" href="quienessomos.html">¿Quiénes somos?</a> 
+                    </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="catalogo.html">Catálogo</a> </li>
+                        <a class="nav-link" href="catalogo.html">Catálogo</a> 
+                    </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="contactanos.html">Contáctanos</a> </li>
+                        <a class="nav-link active" href="contactanos.html">Contáctanos</a> 
+                    </li>
                     <li class="nav-item">
                         <a href="login.html" class="btn btn-primary">Iniciar Sesión</a>
                     </li>
@@ -45,7 +50,7 @@
     <div class="container-fluid">
         <div class="row">
             <div class="col-md-10">
-            </div>
+                </div>
             <div class="col-md-2">
                 <img src="../../img/carrito.png" id="botoncarrito" alt="carrito">
             </div>
@@ -53,8 +58,8 @@
         
         <div class="row mb-4">
             <div class="col-3">
-                <form class="d-flex" role="search">
-                    <input class="form-control me-2" type="search" placeholder="Buscar..." aria-label="Search"/>
+                <form class="d-flex" role="search" id="formBusqueda"> 
+                    <input class="form-control me-2" type="search" placeholder="Buscar..." aria-label="Search" id="inputBusqueda"/>
                     <button class="btn btn-outline-success" type="submit">Buscar</button>
                 </form>
             </div>
@@ -80,12 +85,12 @@
     // URL base de tu backend Node.js
     const API_URL = 'http://localhost:3000';
     const catalogoDinamico = document.getElementById('catalogoDinamico');
+    let filtrosActuales = {}; // Objeto para mantener el estado de los filtros y la búsqueda
 
     // Función para generar el HTML de una tarjeta de producto
     function crearCardProducto(producto) {
         
-        // RUTA DE IMAGEN CORREGIDA para estabilidad en XAMPP y Node.js
-        // Usamos la ruta absoluta que incluye la carpeta de tu proyecto.
+        // RUTA DE IMAGEN CORREGIDA: Usando la ruta absoluta del proyecto para evitar el 404
         const imagenSrc = `/TheTechStore/img/${producto.imagen || 'default.png'}`;
         
         return `
@@ -101,7 +106,7 @@
                                 <a href="pagproducto.html?id=${producto.id_producto}" class="btn btn-primary">Ver información</a>
                             </div>
                             <div class="col-6">
-                                <a href="#" class="btn btn-primary agregar-carrito" data-id-producto="${producto.id_producto}">Agregar</a>
+                                <a href="#" class="btn btn-primary agregar-carrito" data-id-producto="${producto.id_producto}">Agregar al carrito</a>
                             </div>
                         </div>
                     </div>
@@ -111,15 +116,18 @@
     }
         
     // Función principal para llamar al backend y actualizar el catálogo
-    async function cargarCatalogo(filtros = {}) {
+    async function cargarCatalogo(nuevosFiltros = {}) {
+        
+        // Combina los filtros actuales con los nuevos
+        filtrosActuales = { ...filtrosActuales, ...nuevosFiltros };
+        
         let url = `${API_URL}/api/productos/filtrar?`;
         
-        // Construir la URL con parámetros de filtro
-        if (filtros.orden) {
-            url += `orden=${filtros.orden}&`;
-        }
-        if (filtros.categoria) {
-            url += `categoria=${filtros.categoria}&`;
+        // Construir la URL con todos los parámetros de filtrosActuales
+        for (const key in filtrosActuales) {
+            if (filtrosActuales[key]) {
+                url += `${key}=${filtrosActuales[key]}&`;
+            }
         }
         
         url = url.endsWith('&') ? url.slice(0, -1) : url;
@@ -129,22 +137,19 @@
             
             const response = await fetch(url);
 
-            if (response.ok) {
-                console.log(`[CONEXIÓN OK] El servidor Node.js (3000) respondió con éxito (Status: ${response.status}).`);
-            } else {
-                console.error(`[SERVER ERROR] El servidor Node.js devolvió un error de aplicación: ${response.status} ${response.statusText}`);
-                catalogoDinamico.innerHTML = '<div class="col-12"><p class="text-danger text-center mt-5">Error de servidor al cargar productos. Revisa la terminal de Node.js.</p></div>';
-                return;
+            if (!response.ok) {
+                console.error(`[SERVER ERROR] El servidor devolvió un error: ${response.status}`);
+                throw new Error('Error al obtener productos del servidor.');
             }
-
-            const productos = await response.json();
-            console.log(`[API DATA] Productos recibidos: ${productos.length}`);
+            console.log(`[CONEXIÓN OK] El servidor Node.js (3000) respondió con éxito (Status: ${response.status}).`);
             
-            // Reemplazar el contenido para LIMPIAR LA PANTALLA ANTES DE MOSTRAR RESULTADOS
+            const productos = await response.json();
+            
+            // LÍNEA CRÍTICA: Limpia el contenido anterior antes de renderizar
             catalogoDinamico.innerHTML = ''; 
             
             if (productos.length === 0) {
-                catalogoDinamico.innerHTML = '<div class="col-12"><p class="text-center mt-5">No se encontraron productos con estos filtros.</p></div>';
+                catalogoDinamico.innerHTML = '<div class="col-12"><p class="text-center mt-5">No se encontraron productos que coincidan con la búsqueda o filtros.</p></div>';
                 return;
             }
 
@@ -164,7 +169,7 @@
         // CARGA INICIAL (Prueba la conexión inmediatamente al iniciar la página)
         cargarCatalogo();
 
-        // LISTENERS DE ORDENAMIENTO (PRECIO)
+        // 1. LISTENERS DE ORDENAMIENTO (PRECIO)
         document.getElementById('ordenAscendente').addEventListener('click', (e) => {
             cargarCatalogo({ orden: e.target.getAttribute('data-orden') });
         });
@@ -173,7 +178,7 @@
             cargarCatalogo({ orden: e.target.getAttribute('data-orden') });
         });
 
-        // LISTENERS DE FILTRADO POR CATEGORÍA
+        // 2. LISTENERS DE FILTRADO POR CATEGORÍA
         document.getElementById('filtroPortatiles').addEventListener('click', (e) => {
             cargarCatalogo({ categoria: e.target.getAttribute('data-id-categoria') }); 
         });
@@ -183,18 +188,25 @@
         });
         
         document.getElementById('filtroTodos').addEventListener('click', () => {
-            cargarCatalogo({}); // Carga sin filtros
+            // Elimina todos los parámetros de filtro y carga el catálogo completo
+            filtrosActuales = {}; 
+            cargarCatalogo({}); 
         });
 
-        // LISTENER DEL CARRITO (Verificación de Sesión)
-        document.getElementById('botoncarrito').addEventListener('click', async () => {
-            const response = await fetch(`${API_URL}/api/session`);
-            const sessionData = await response.json();
+       // 3. LISTENER DEL BUSCADOR (CORREGIDO)
+        document.getElementById('formBusqueda').addEventListener('submit', (e) => {
+            
+            // 1. Evita que la página se recargue (¡CRUCIAL!)
+            e.preventDefault(); 
+            
+            const terminoBusqueda = document.getElementById('inputBusqueda').value.trim();
 
-            if (sessionData.isLoggedIn) {
-                window.location.href = 'carrito.html';
+            if (terminoBusqueda !== '') {
+                // 2. Ejecuta la búsqueda. Al hacer una nueva búsqueda, limpiamos la categoría y el orden para enfocarnos solo en el resultado de la búsqueda.
+                cargarCatalogo({ busqueda: terminoBusqueda, categoria: '', orden: '' });
             } else {
-                window.location.href = 'login.html';
+                // 3. Si el campo está vacío, recarga el catálogo completo
+                cargarCatalogo({}); 
             }
         });
     });

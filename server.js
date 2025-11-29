@@ -5,32 +5,32 @@ const express = require('express');
 const mysql = require('mysql2'); 
 const session = require('express-session');
 const bcrypt = require('bcrypt');
+const cors = require('cors'); // Para permitir la conexión desde Apache (XAMPP)
 const app = express();
 const PORT = 3000;
 
-// Configuración de la Base de Datos (AJUSTA ESTOS VALORES si son diferentes a root/vacío)
+// Configuración de la Base de Datos (VERIFICAR usuario/contraseña)
 const dbConfig = {
     host: 'localhost', 
     user: 'root',
     password: '', 
     database: 'tienda_online_modificada',
-    // Configuración del Pool de Conexiones
+    // Configuración del Pool de Conexiones para mayor estabilidad
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0
 };
 
-// ** USAMOS EL POOL DE CONEXIONES para mayor estabilidad **
+// ** USAMOS EL POOL DE CONEXIONES **
 const db = mysql.createPool(dbConfig);
 
-// Conectar a la BD (El pool verifica la conexión automáticamente)
+// Verificar la conexión inicial a la BD
 db.getConnection((err, connection) => {
     if (err) {
-        // Manejo de errores en caso de fallo crítico al iniciar la BD
         console.error('❌ Error fatal al conectar/iniciar el Pool de Conexiones:', err);
         process.exit(1); 
     }
-    if (connection) connection.release(); // Libera la conexión inicial de prueba
+    if (connection) connection.release();
     
     console.log('✅ Conexión exitosa a la base de datos MySQL (Pool iniciado).');
 });
@@ -38,26 +38,24 @@ db.getConnection((err, connection) => {
 // ==========================================================
 // MIDDLEWARE
 // ==========================================================
-const cors = require('cors'); // <-- AGREGAR ESTO AL INICIO DE server.js
 
-// 0. Configuración CORS (¡CRUCIAL!)
+// 0. Configuración CORS
 app.use(cors({
-    origin: 'http://localhost', // Permite solicitudes desde Apache (puerto 80)
+    origin: 'http://localhost', // Tu frontend está aquí
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    credentials: true // Permite el envío de cookies de sesión
+    credentials: true 
 }));
 
 // 1. Procesamiento de datos de la petición (JSON y formularios)
 app.use(express.json());
-app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Manejo de Sesiones
+// 2. Manejo de Sesiones
 app.use(session({
     secret: 'UNA_CLAVE_SECRETA_MUY_LARGA_Y_COMPLEJA_PARA_SEGURIDAD', 
     resave: false,
     saveUninitialized: false,
-    cookie: { maxAge: 1000 * 60 * 60 * 24 } // 24 horas
+    cookie: { maxAge: 1000 * 60 * 60 * 24, secure: false } 
 }));
 
 // Middleware para verificar si el usuario está logueado
@@ -121,21 +119,12 @@ app.post('/api/login', (req, res) => {
             
             res.json({ 
                 message: 'Inicio de sesión exitoso.', 
+                isLoggedIn: true,
                 user: { id: user.id_usuario, nombre: user.nombre, email: user.email }
             });
         } else {
-            res.status(401).json({ error: 'Credenciales inválidas.' });
+            res.status(401).json({ error: 'Credenciales inválidas.' }); 
         }
-    });
-});
-
-app.post('/api/logout', (req, res) => {
-    req.session.destroy(err => {
-        if (err) {
-            return res.status(500).json({ error: 'No se pudo cerrar la sesión.' });
-        }
-        res.clearCookie('connect.sid');
-        res.json({ message: 'Sesión cerrada exitosamente.' });
     });
 });
 
@@ -143,20 +132,24 @@ app.get('/api/session', (req, res) => {
     if (req.session.userId) {
         res.json({ 
             isLoggedIn: true, 
-            nombre: req.session.nombre,
+            userId: req.session.userId, 
+            nombre: req.session.nombre 
         });
     } else {
         res.json({ isLoggedIn: false });
     }
 });
 
-
 // ==========================================================
-// RUTAS DE CATÁLOGO (FILTRADO Y CATEGORÍAS)
+// RUTAS DE PRODUCTOS Y FILTRADO (INCLUYENDO BUSCADOR)
 // ==========================================================
 
+/**
+ * Endpoint para obtener productos con filtros (categoría, precio, ordenamiento Y BÚSQUEDA)
+ */
 app.get('/api/productos/filtrar', (req, res) => {
-    const { categoria, precio_min, precio_max, orden } = req.query;
+    // Captura el parámetro 'busqueda'
+    const { categoria, precio_min, precio_max, orden, busqueda } = req.query; 
 
     let sql = `
         SELECT p.*, c.nombre AS nombre_categoria
@@ -166,25 +159,31 @@ app.get('/api/productos/filtrar', (req, res) => {
     `;
     let params = [];
 
-    // 1. Filtro por Categoría (usa id_categoria)
+    // 0. LÓGICA DE BÚSQUEDA (OPERADOR LIKE)
+    if (busqueda) {
+        // Usa LIKE para buscar el término en nombre O descripción
+        sql += ' AND (p.nombre LIKE ? OR p.descripcion LIKE ?)';
+        const terminoBusqueda = '%' + busqueda + '%';
+        params.push(terminoBusqueda, terminoBusqueda);
+    }
+
+    // 1. Filtro por Categoría
     if (categoria && categoria !== 'todos') {
         sql += ' AND p.id_categoria = ?';
         params.push(categoria);
     }
 
-    // 2. Filtro por Precio Mínimo
+    // 2. Filtro por Precio Mínimo/Máximo
     if (precio_min && !isNaN(parseFloat(precio_min))) {
         sql += ' AND p.precio >= ?';
         params.push(parseFloat(precio_min));
     }
-
-    // 3. Filtro por Precio Máximo
     if (precio_max && !isNaN(parseFloat(precio_max))) {
         sql += ' AND p.precio <= ?';
         params.push(parseFloat(precio_max));
     }
 
-    // 4. Ordenamiento
+    // 3. Ordenamiento
     if (orden === 'asc') {
         sql += ' ORDER BY p.precio ASC';
     } else if (orden === 'desc') {
@@ -193,35 +192,13 @@ app.get('/api/productos/filtrar', (req, res) => {
         sql += ' ORDER BY p.nombre ASC'; 
     }
 
+    // Ejecutar la consulta
     db.execute(sql, params, (err, results) => {
         if (err) {
             console.error('Error al filtrar productos (SQL FAILED):', err);
-            // Este es el mensaje que aparece en el navegador cuando falla la consulta
             return res.status(500).json({ error: 'Error interno del servidor al obtener productos.' });
         }
         res.json(results);
-    });
-});
-
-app.get('/api/productos/:id', (req, res) => {
-    const productId = req.params.id;
-    
-    const sql = `
-        SELECT p.*, c.nombre AS nombre_categoria
-        FROM productos p
-        JOIN categorias c ON p.id_categoria = c.id_categoria
-        WHERE p.id_producto = ?
-    `;
-
-    db.execute(sql, [productId], (err, results) => {
-        if (err) {
-            console.error('Error al obtener producto individual:', err);
-            return res.status(500).json({ error: 'Error interno del servidor.' });
-        }
-        if (results.length === 0) {
-            return res.status(404).json({ error: 'Producto no encontrado.' });
-        }
-        res.json(results[0]);
     });
 });
 
@@ -314,96 +291,6 @@ app.get('/api/carrito', checkAuth, (req, res) => {
         res.json({ items: results, total: total });
     });
 });
-
-app.post('/api/pedidos/checkout', checkAuth, async (req, res) => {
-    const userId = req.session.userId;
-    const { calle, ciudad, estado, codigo_postal, metodo_pago } = req.body;
-
-    if (!calle || !ciudad || !codigo_postal || !metodo_pago) {
-        return res.status(400).json({ error: 'Faltan datos de envío o método de pago.' });
-    }
-
-    let connection;
-
-    try {
-        connection = await mysql.createConnection(dbConfig).promise();
-        await connection.beginTransaction();
-
-        let [carritoResults] = await connection.execute(
-            'SELECT dc.id_producto, dc.cantidad, p.precio, p.stock FROM carrito c JOIN detalles_carrito dc ON c.id_carrito = dc.id_carrito JOIN productos p ON dc.id_producto = p.id_producto WHERE c.id_usuario = ?',
-            [userId]
-        );
-
-        if (carritoResults.length === 0) {
-            await connection.rollback();
-            return res.status(400).json({ error: 'El carrito está vacío.' });
-        }
-        
-        let totalPedido = 0;
-        const detalles = carritoResults;
-
-        for (const item of detalles) {
-            if (item.cantidad > item.stock) {
-                await connection.rollback();
-                return res.status(400).json({ error: `Stock insuficiente para producto ID ${item.id_producto}. Solo hay ${item.stock} disponibles.` });
-            }
-            totalPedido += item.precio * item.cantidad;
-        }
-
-        const [direccionCheck] = await connection.execute('SELECT id_direccion FROM direcciones WHERE id_usuario = ?', [userId]);
-        let id_direccion_envio;
-
-        if (direccionCheck.length > 0) {
-            id_direccion_envio = direccionCheck[0].id_direccion;
-            await connection.execute(
-                'UPDATE direcciones SET calle = ?, ciudad = ?, estado = ?, codigo_postal = ? WHERE id_usuario = ?',
-                [calle, ciudad, estado, codigo_postal, userId]
-            );
-        } else {
-            const [direccionInsert] = await connection.execute(
-                'INSERT INTO direcciones (id_usuario, calle, ciudad, estado, codigo_postal) VALUES (?, ?, ?, ?, ?)',
-                [userId, calle, ciudad, estado, codigo_postal]
-            );
-            id_direccion_envio = direccionInsert.insertId;
-        }
-
-        const [pedidoInsert] = await connection.execute(
-            'INSERT INTO pedidos (id_usuario, total, estado, id_direccion_envio, metodo_pago) VALUES (?, ?, ?, ?, ?)',
-            [userId, totalPedido.toFixed(2), 'PAGADO', id_direccion_envio, metodo_pago]
-        );
-        const id_pedido = pedidoInsert.insertId;
-
-        for (const item of detalles) {
-            await connection.execute(
-                'INSERT INTO detalles_pedido (id_pedido, id_producto, cantidad, precio_unitario) VALUES (?, ?, ?, ?)',
-                [id_pedido, item.id_producto, item.cantidad, item.precio]
-            );
-
-            await connection.execute(
-                'UPDATE productos SET stock = stock - ? WHERE id_producto = ?',
-                [item.cantidad, item.id_producto]
-            );
-        }
-
-        await connection.execute('DELETE FROM detalles_carrito WHERE id_carrito IN (SELECT id_carrito FROM carrito WHERE id_usuario = ?)', [userId]);
-        
-        await connection.commit();
-        
-        res.json({ message: 'Pedido realizado con éxito.', id_pedido: id_pedido, total: totalPedido.toFixed(2) });
-
-    } catch (error) {
-        if (connection) {
-            await connection.rollback();
-        }
-        console.error('Error durante el checkout/transacción:', error);
-        res.status(500).json({ error: 'Error al procesar el pedido. La transacción fue revertida.' });
-    } finally {
-        if (connection) {
-            await connection.end();
-        }
-    }
-});
-
 
 // ==========================================================
 // INICIAR EL SERVIDOR
