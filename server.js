@@ -287,7 +287,9 @@ app.get('/api/carrito', checkAuth, (req, res) => {
 
     const sql = `
         SELECT 
-            dc.id_detalle_carrito, dc.cantidad, p.id_producto, p.nombre, p.precio, p.imagen, (p.precio * dc.cantidad) AS subtotal
+            dc.id_detalle_carrito, dc.cantidad, 
+            p.id_producto, p.nombre, p.precio, p.imagen, 
+            (p.precio * dc.cantidad) AS subtotal
         FROM carrito c
         JOIN detalles_carrito dc ON c.id_carrito = dc.id_carrito
         JOIN productos p ON dc.id_producto = p.id_producto
