@@ -81,7 +81,55 @@ const checkAdmin = (req, res, next) => {
         res.status(403).json({ error: 'Acceso denegado. Se requiere ser administrador.' });
     }
 };
+//ruta para mostrar pedidos en pagina crud
+// --- GET: Listar todos los pedidos con info básica del cliente
+app.get('/api/admin/pedidos', checkAdmin, async (req, res) => {
+    try {
+        const sql = `
+            SELECT 
+                p.id_pedido, p.fecha, p.total, p.direccion, 
+                p.estado_pedido, -- Columna renombrada
+                u.nombre AS nombre_cliente, u.email,
+                p.ciudad, p.cp
+            FROM pedidos p
+            JOIN usuarios u ON p.id_usuario = u.id_usuario
+            ORDER BY p.fecha DESC
+        `;
+        const [pedidos] = await poolPromise.query(sql);
+        res.json(pedidos);
+    } catch (error) {
+        console.error('Error al obtener lista de pedidos (ADMIN):', error);
+        res.status(500).json({ error: 'Error interno del servidor.' });
+    }
+});
+//ruta para mostrar productos en pagina crud
+// ESTA RUTA DEBE ESTAR DEFINIDA CORRECTAMENTE:
+app.get('/api/admin/productos', checkAdmin, async (req, res) => {
+    try {
+        const [productos] = await poolPromise.query('SELECT * FROM productos ORDER BY id_producto DESC');
+        res.json(productos); // Devuelve el array de productos
+    } catch (error) {
+        console.error('Error al obtener productos (ADMIN):', error);
+        res.status(500).json({ error: 'Error interno del servidor.' });
+    }
+});
 
+// ... (Rutas POST y DELETE siguen aquí) ...
+
+// -------------------------------------------------------------------
+// 2. CRUD ADMINISTRADORES (/api/admin/usuarios)
+// -------------------------------------------------------------------
+
+// ESTA RUTA DEBE ESTAR DEFINIDA CORRECTAMENTE:
+app.get('/api/admin/usuarios/all', checkAdmin, async (req, res) => {
+    try {
+        const [usuarios] = await poolPromise.query('SELECT id_usuario, nombre, email, rol, telefono FROM usuarios ORDER BY id_usuario ASC');
+        res.json(usuarios);
+    } catch (error) {
+        console.error('Error al obtener lista de usuarios:', error);
+        res.status(500).json({ error: 'Error interno del servidor.' });
+    }
+});
 //Ruta para mostrar los usuarios en la pagina crud de administrador de usuarios
 // En server.js, asegúrate de que esta ruta exista y esté protegida:
 app.get('/api/admin/usuarios/all', checkAdmin, async (req, res) => {
