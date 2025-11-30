@@ -244,17 +244,7 @@
             cargarCatalogo({}); 
         });
 
-        // 2. LISTENER DEL BUSCADOR
-        document.getElementById('formBusqueda').addEventListener('submit', (e) => {
-            e.preventDefault(); 
-            const terminoBusqueda = document.getElementById('inputBusqueda').value.trim();
-            
-            if (terminoBusqueda !== '') {
-                 cargarCatalogo({ busqueda: terminoBusqueda, categoria: '', orden: '' });
-            } else {
-                 cargarCatalogo({ busqueda: '', categoria: filtrosActuales.categoria, orden: filtrosActuales.orden });
-            }
-        });
+
 
         // 3. LISTENER GLOBAL PARA AGREGAR AL CARRITO
         document.addEventListener('click', async (e) => {
