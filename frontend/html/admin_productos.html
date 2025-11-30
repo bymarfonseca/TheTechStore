@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin: Gestión de Productos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="mb-4">Gestión de Productos</h1>
+        <a href="index.html" class="btn btn-secondary mb-3">Volver al Dashboard</a>
+        
+        <button class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#addProductModal">
+            Añadir Nuevo Producto
+        </button>
+        
+        <div id="productsTableContainer">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Precio</th>
+                        <th>Categoría ID</th>
+                        <th>Stock</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="productsTableBody">
+                    </tbody>
+            </table>
+        </div>
+        <div id="errorMsg" class="alert alert-danger d-none"></div>
+    </div>
+
+    <div class="modal fade" id="addProductModal" tabindex="-1" aria-labelledby="addProductModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addProductModalLabel">Añadir Producto</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addProductForm">
+                        <div class="mb-3">
+                            <label for="pNombre" class="form-label">Nombre</label>
+                            <input type="text" class="form-control" id="pNombre" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="pPrecio" class="form-label">Precio</label>
+                            <input type="number" step="0.01" class="form-control" id="pPrecio" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="pCategoria" class="form-label">Categoría ID</label>
+                            <input type="number" class="form-control" id="pCategoria" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="pStock" class="form-label">Stock</label>
+                            <input type="number" class="form-control" id="pStock" value="0">
+                        </div>
+                        <div class="mb-3">
+                            <label for="pDescripcion" class="form-label">Descripción</label>
+                            <textarea class="form-control" id="pDescripcion"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="pImagen" class="form-label">Nombre Imagen (ej: laptop.jpg)</label>
+                            <input type="text" class="form-control" id="pImagen">
+                        </div>
+                        <button type="submit" class="btn btn-success">Guardar Producto</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const API_URL = 'http://localhost:3000';
+        const tbody = document.getElementById('productsTableBody');
+        const addForm = document.getElementById('addProductForm');
+
+        async function cargarProductos() {
+            try {
+                const response = await fetch(`${API_URL}/api/admin/productos`, { credentials: 'include' });
+                
+                if (response.status === 403) {
+                    alert('Acceso denegado. No eres administrador.');
+                    window.location.href = 'index.html';
+                    return;
+                }
+                
+                const productos = await response.json();
+                tbody.innerHTML = ''; 
+
+                productos.forEach(p => {
+                    const row = tbody.insertRow();
+                    row.innerHTML = `
+                        <td>${p.id_producto}</td>
+                        <td>${p.nombre}</td>
+                        <td>$${parseFloat(p.precio).toFixed(2)}</td>
+                        <td>${p.id_categoria}</td>
+                        <td>${p.stock}</td>
+                        <td>
+                            <button class="btn btn-danger btn-sm delete-product" data-id="${p.id_producto}">Eliminar</button>
+                        </td>
+                    `;
+                });
+
+            } catch (error) {
+                console.error('Error al cargar productos:', error);
+                document.getElementById('errorMsg').textContent = `Error: No se pudieron cargar los productos.`;
+                document.getElementById('errorMsg').classList.remove('d-none');
+            }
+        }
+
+        // Listener para AGREGAR PRODUCTO (POST)
+        addForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const nuevoProducto = {
+                nombre: document.getElementById('pNombre').value,
+                precio: parseFloat(document.getElementById('pPrecio').value),
+                id_categoria: parseInt(document.getElementById('pCategoria').value),
+                descripcion: document.getElementById('pDescripcion').value,
+                stock: parseInt(document.getElementById('pStock').value),
+                imagen: document.getElementById('pImagen').value
+            };
+
+            try {
+                const response = await fetch(`${API_URL}/api/admin/productos`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(nuevoProducto),
+                    credentials: 'include'
+                });
+
+                if (response.ok) {
+                    alert('Producto agregado exitosamente.');
+                    document.getElementById('addProductModal').querySelector('.btn-close').click(); 
+                    addForm.reset(); // Limpiar formulario
+                    cargarProductos();
+                } else {
+                    const data = await response.json();
+                    alert(`Fallo al agregar: ${data.error}`);
+                }
+            } catch (error) {
+                alert('Error de conexión al guardar producto.');
+            }
+        });
+
+        // Listener para ELIMINAR PRODUCTO (DELETE)
+        tbody.addEventListener('click', async (e) => {
+            if (e.target.classList.contains('delete-product')) {
+                const id_producto = e.target.getAttribute('data-id');
+                if (!confirm(`¿Estás seguro de eliminar el producto #${id_producto}?`)) return;
+
+                try {
+                    const response = await fetch(`${API_URL}/api/admin/productos/${id_producto}`, {
+                        method: 'DELETE',
+                        credentials: 'include'
+                    });
+
+                    if (response.ok) {
+                        alert('Producto eliminado.');
+                        cargarProductos();
+                    } else {
+                        const data = await response.json();
+                        alert(`Fallo al eliminar: ${data.error}`);
+                    }
+                } catch (error) {
+                    alert('Error de conexión.');
+                }
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', cargarProductos);
+    </script>
+</body>
+</html>

@@ -14,40 +14,47 @@
 </head>
 
 <body>
-    <nav class="navbar navbar-expand-lg">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="#">
-                <img src="../../img/logothetechstore.png" alt="logo" width="55" height="70">
-            </a>
-            
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+<nav class="navbar navbar-expand-lg">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">
+            <img src="../../img/logothetechstore.png" alt="logo" width="55" height="70">
+        </a>
+        
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
 
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" aria-current="page" href="../../frontend/html/index.html">Inicio</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" href="../../frontend/html/quienessomos.html">¿Quiénes somos?</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="../../frontend/html/catalogo.html">Catálogo</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="../../frontend/html/contactanos.html">Contáctanos</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="login.html" class="btn btn-primary">Iniciar Sesión</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="registro.html" class="btn btn-secondary">Registrarse</a>
-                    </li>
-                </ul>
-            </div>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" aria-current="page" href="index.html">Inicio</a></li>
+                <li class="nav-item"><a class="nav-link" href="quienessomos.html">¿Quiénes somos?</a></li>
+                <li class="nav-item"><a class="nav-link" href="catalogo.html">Catálogo</a></li>
+                <li class="nav-item"><a class="nav-link" href="contactanos.html">Contáctanos</a></li>
+
+                <li class="nav-item dropdown d-flex align-items-center d-none me-2" id="adminMenu"> 
+                    <a class="nav-link dropdown-toggle btn btn-danger text-white btn-sm" href="#" id="navbarDropdownAdmin" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Panel Admin
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownAdmin">
+                        <li><a class="dropdown-item" href="admin_pedidos.html">Gestión de Pedidos</a></li>
+                        <li><a class="dropdown-item" href="admin_productos.html">Gestión de Productos</a></li>
+                        <li><a class="dropdown-item" href="admin_usuarios.html">Gestión de Roles</a></li>
+                    </ul>
+                </li>
+                
+                <li class="nav-item d-flex align-items-center" id="authButtons"> 
+                    <a href="login.html" class="btn btn-primary me-2">Iniciar Sesión</a>
+                    <a href="registro.html" class="btn btn-secondary">Registrarse</a>
+                </li>
+
+                <li class="nav-item d-flex align-items-center d-none" id="userInfo"> 
+                    <span class="nav-link">Hola, <strong id="userNameDisplay">Usuario</strong>!</span>
+                    <button class="btn btn-danger btn-sm" id="logoutButton">Cerrar Sesión</button>
+                </li>
+            </ul>
         </div>
-    </nav>
+    </div>
+</nav>
 
     <div class="container-fluid">
         <h1 class="display-2" id="titulo"><strong>¿Quiénes Somos?</strong></h1>
