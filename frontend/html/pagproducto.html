@@ -183,12 +183,14 @@
                     const cantidad = parseInt(document.getElementById('quantitySelect').value);
                     
                     try {
-                        const cartResponse = await fetch(`${API_URL}/api/carrito/agregar`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            // Esto es crucial para que el servidor reconozca la sesión del usuario
-                            credentials: 'include', 
-                            body: JSON.stringify({ id_producto: idProducto, cantidad })
+const cartResponse = await fetch(`${API_URL}/api/carrito/agregar`, {
+    method: 'POST',
+    headers: { 
+        'Content-Type': 'application/json' 
+    },
+    
+    credentials: 'include', 
+    body: JSON.stringify({ id_producto: idProducto, cantidad })
                         });
 
                         const data = await cartResponse.json();

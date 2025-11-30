@@ -29,15 +29,15 @@
                     <li class="nav-item"><a class="nav-link" href="catalogo.html">Catálogo</a></li>
                     <li class="nav-item"><a class="nav-link active" href="contactanos.html">Contáctanos</a></li>
                     
-                    <li class="nav-item" id="authButtons"> 
+                    <li class="nav-item d-flex align-items-center" id="authButtons"> 
                         <a href="login.html" class="btn btn-primary">Iniciar Sesión</a>
                         <a href="registro.html" class="btn btn-secondary">Registrarse</a>
                     </li>
 
-<li class="nav-item d-flex align-items-center" id="userInfo" style="display: none;"> 
-    <span class="nav-link">Hola, <strong id="userNameDisplay">Usuario</strong>!</span>
-    <button class="btn btn-danger btn-sm" id="logoutButton">Cerrar Sesión</button>
-</li>
+                    <li class="nav-item d-flex align-items-center d-none" id="userInfo"> 
+                        <span class="nav-link">Hola, <strong id="userNameDisplay">Usuario</strong>!</span>
+                        <button class="btn btn-danger btn-sm" id="logoutButton">Cerrar Sesión</button>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -48,7 +48,7 @@
             <div class="col-md-10">
                 </div>
             <div class="col-md-2">
-                <img src="../../img/carrito.png" id="botoncarrito" alt="carrito">
+                <img src="../../img/carrito.png" id="botoncarrito" alt="carrito" style="cursor: pointer;">
             </div>
         </div>
         
@@ -76,20 +76,20 @@
     </div>
 
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-    <script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+<script>
     // URL base de tu backend Node.js
     const API_URL = 'http://localhost:3000';
     const catalogoDinamico = document.getElementById('catalogoDinamico');
-    let filtrosActuales = {}; // Objeto para mantener el estado de los filtros
+    let filtrosActuales = {}; 
 
     // ==========================================================
     // FUNCIÓN: GENERAR CARTA DE PRODUCTO
     // ==========================================================
     function crearCardProducto(producto) {
         
-        // RUTA DE IMAGEN CORREGIDA
-        const imagenSrc = `/TheTechStore/img/${producto.imagen || 'default.png'}`;
+        // Uso de ruta relativa simplificada, asumiendo que el servidor web la maneja
+        const imagenSrc = `../../img/${producto.imagen || 'default.png'}`;
         
         return `
             <div class="col-6 col-lg-3 d-flex">
@@ -114,44 +114,61 @@
     }
 
     // ==========================================================
-    // FUNCIÓN: VERIFICAR SESIÓN Y RENDERIZAR BARRA DE NAVEGACIÓN
+    // FUNCIÓN: VERIFICAR SESIÓN Y RENDERIZAR BARRA DE NAVEGACIÓN (CORREGIDO)
     // ==========================================================
     async function checkSessionAndRenderNav() {
         try {
-            const response = await fetch(`${API_URL}/api/session`);
+            // AÑADIDO: { credentials: 'include' }
+            const response = await fetch(`${API_URL}/api/session`, { 
+                credentials: 'include' 
+            });
+            
+            if (!response.ok) {
+                 throw new Error(`Error HTTP: ${response.status}`);
+            }
+
             const sessionData = await response.json();
+            
+            // Si la línea 132 apunta aquí, ahora el objeto sessionData debería ser correcto
+            console.log("Estado de la sesión recibido (FINAL):", sessionData); 
 
             const authButtons = document.getElementById('authButtons');
             const userInfo = document.getElementById('userInfo');
 
             if (sessionData.isLoggedIn) {
-                // Usuario logueado: Ocultar botones de Login/Registro
-                if (authButtons) authButtons.style.display = 'none';
                 
-                // Mostrar nombre y botón de logout
+                if (authButtons) authButtons.classList.add('d-none');
+                
                 if (userInfo) {
-                   document.getElementById('userNameDisplay').textContent = sessionData.nombre;
-                    userInfo.style.display = 'flex';
+                   document.getElementById('userNameDisplay').textContent = sessionData.nombre || 'Usuario';
+                   userInfo.classList.remove('d-none'); 
                 }
                 
-                // Listener al botón de Cerrar Sesión
-                document.getElementById('logoutButton').addEventListener('click', async () => {
-                    const logoutResponse = await fetch(`${API_URL}/api/logout`, { method: 'POST' });
-                    if (logoutResponse.ok) {
-                        alert('Sesión cerrada correctamente.');
-                        window.location.href = 'index.html'; 
-                    } else {
-                        alert('Error al cerrar sesión.');
-                    }
-                });
+                if (document.getElementById('logoutButton')) {
+                    document.getElementById('logoutButton').addEventListener('click', async () => {
+                        // AÑADIDO: { credentials: 'include' }
+                        const logoutResponse = await fetch(`${API_URL}/api/logout`, { 
+                            method: 'POST',
+                            credentials: 'include' // Incluir credenciales para cerrar sesión
+                        });
+                        if (logoutResponse.ok) {
+                            alert('Sesión cerrada correctamente.');
+                            window.location.href = 'index.html'; 
+                        } else {
+                            alert('Error al cerrar sesión.');
+                        }
+                    });
+                }
 
             } else {
-                // Usuario NO logueado
-                if (authButtons) authButtons.style.display = 'flex';
-                if (userInfo) userInfo.style.display = 'none';
+                
+                if (authButtons) authButtons.classList.remove('d-none');
+                if (userInfo) userInfo.classList.add('d-none');
             }
         } catch (error) {
-            console.error('Error verificando sesión:', error);
+            console.error('Error verificando sesión o conexión con el servidor Node.js:', error);
+            const authButtons = document.getElementById('authButtons');
+            if (authButtons) authButtons.classList.remove('d-none');
         }
     }
         
@@ -173,7 +190,8 @@
         url = url.endsWith('&') ? url.slice(0, -1) : url;
 
         try {
-            const response = await fetch(url);
+            // No necesita 'credentials: include' aquí, ya que no depende de la sesión
+            const response = await fetch(url); 
             
             if (!response.ok) {
                 throw new Error('Error al obtener productos del servidor.');
@@ -181,7 +199,6 @@
             
             const productos = await response.json();
             
-            // LÍNEA CRÍTICA: Limpia el contenido anterior
             catalogoDinamico.innerHTML = ''; 
             
             if (productos.length === 0) {
@@ -189,7 +206,6 @@
                 return;
             }
 
-            // Insertar cada producto
             productos.forEach(producto => {
                 catalogoDinamico.innerHTML += crearCardProducto(producto);
             });
@@ -205,7 +221,7 @@
     // ==========================================================
     
     document.addEventListener('DOMContentLoaded', () => {
-        // LLAMADA INICIAL: Carga la barra de navegación y el catálogo
+        
         checkSessionAndRenderNav();
         cargarCatalogo();
 
@@ -243,21 +259,22 @@
             }
         });
 
-        // 3. LISTENER GLOBAL PARA AGREGAR AL CARRITO (Función Nueva)
+        // 3. LISTENER GLOBAL PARA AGREGAR AL CARRITO
         document.addEventListener('click', async (e) => {
-            // Verifica si el clic fue en un botón con la clase 'agregar-carrito'
+            
             if (e.target.classList.contains('agregar-carrito')) {
                 e.preventDefault(); 
                 
-                // Obtiene el ID del producto que se generó dinámicamente
                 const idProducto = e.target.getAttribute('data-id-producto');
                 const cantidad = 1; 
                 
                 try {
+                    // AÑADIDO: { credentials: 'include' }
                     const response = await fetch(`${API_URL}/api/carrito/agregar`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ id_producto: idProducto, cantidad })
+                        body: JSON.stringify({ id_producto: idProducto, cantidad }),
+                        credentials: 'include' // Incluir credenciales para la verificación de sesión en el backend
                     });
 
                     const data = await response.json();
@@ -265,7 +282,7 @@
                     if (response.ok) {
                         alert(`¡Producto ID ${idProducto} agregado!`);
                     } else if (response.status === 401) {
-                        // Si el servidor devuelve 401 (no autorizado)
+                        
                         alert('Debes iniciar sesión para agregar productos.');
                         window.location.href = 'login.html'; 
                     } else {
@@ -281,13 +298,14 @@
 
         // 4. LISTENER DEL BOTÓN CARRITO
         document.getElementById('botoncarrito').addEventListener('click', async () => {
-            const response = await fetch(`${API_URL}/api/session`);
+            // AÑADIDO: { credentials: 'include' }
+            const response = await fetch(`${API_URL}/api/session`, { credentials: 'include' });
             const sessionData = await response.json();
 
             if (sessionData.isLoggedIn) {
-                window.location.href = 'carrito.html'; // Dirige al carrito
+                window.location.href = 'carrito.html';
             } else {
-                window.location.href = 'login.html'; // Dirige al login
+                window.location.href = 'login.html';
             }
         });
     });

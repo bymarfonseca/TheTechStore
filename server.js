@@ -5,9 +5,12 @@ const express = require('express');
 const mysql = require('mysql2'); 
 const session = require('express-session');
 const bcrypt = require('bcrypt');
-const cors = require('cors'); // Para permitir la conexión desde Apache (XAMPP)
+const cors = require('cors'); 
 const app = express();
 const PORT = 3000;
+
+// CRUCIAL: Confía en los encabezados Host/Origin, necesario para cross-port en localhost
+app.set('trust proxy', 1); 
 
 // Configuración de la Base de Datos (VERIFICAR usuario/contraseña)
 const dbConfig = {
@@ -23,23 +26,25 @@ const dbConfig = {
 
 // ** USAMOS EL POOL DE CONEXIONES **
 const db = mysql.createPool(dbConfig);
+const poolPromise = db.promise(); // Interfaz de Promesas para transacciones (necesaria para el checkout)
+
 
 // Verificar la conexión inicial a la BD
 db.getConnection((err, connection) => {
     if (err) {
-        console.error('❌ Error fatal al conectar/iniciar el Pool de Conexiones:', err);
+        console.error('Error fatal al conectar/iniciar el Pool de Conexiones:', err);
         process.exit(1); 
     }
     if (connection) connection.release();
     
-    console.log('✅ Conexión exitosa a la base de datos MySQL (Pool iniciado).');
+    console.log('Conexión exitosa a la base de datos MySQL (Pool iniciado).');
 });
 
 // ==========================================================
 // MIDDLEWARE
 // ==========================================================
 
-// 0. Configuración CORS
+// 0. Configuración CORS (Permite cookies entre localhost:80 y localhost:3000)
 app.use(cors({
     origin: 'http://localhost', // Tu frontend está aquí
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
@@ -55,7 +60,11 @@ app.use(session({
     secret: 'UNA_CLAVE_SECRETA_MUY_LARGA_Y_COMPLEJA_PARA_SEGURIDAD', 
     resave: false,
     saveUninitialized: false,
-    cookie: { maxAge: 1000 * 60 * 60 * 24, secure: false } 
+    cookie: { 
+        maxAge: 1000 * 60 * 60 * 24, 
+        secure: false, // Debe ser false para HTTP (localhost)
+        sameSite: 'Lax' // CRUCIAL: Permite el envío de la cookie entre diferentes puertos de localhost
+    } 
 }));
 
 // Middleware para verificar si el usuario está logueado
@@ -68,7 +77,7 @@ const checkAuth = (req, res, next) => {
 };
 
 // ==========================================================
-// RUTAS DE AUTENTICACIÓN (LOGIN Y REGISTRO)
+// RUTAS DE AUTENTICACIÓN (LOGIN, REGISTRO, SESIÓN Y LOGOUT)
 // ==========================================================
 
 app.post('/api/register', async (req, res) => {
@@ -140,15 +149,21 @@ app.get('/api/session', (req, res) => {
     }
 });
 
+app.post('/api/logout', (req, res) => {
+    req.session.destroy(err => {
+        if (err) {
+            return res.status(500).json({ error: 'Error al cerrar sesión.' });
+        }
+        res.clearCookie('connect.sid'); // Limpiar la cookie de sesión
+        res.json({ message: 'Sesión cerrada exitosamente.' });
+    });
+});
+
 // ==========================================================
 // RUTAS DE PRODUCTOS Y FILTRADO (INCLUYENDO BUSCADOR)
 // ==========================================================
 
-/**
- * Endpoint para obtener productos con filtros (categoría, precio, ordenamiento Y BÚSQUEDA)
- */
 app.get('/api/productos/filtrar', (req, res) => {
-    // Captura el parámetro 'busqueda'
     const { categoria, precio_min, precio_max, orden, busqueda } = req.query; 
 
     let sql = `
@@ -159,21 +174,17 @@ app.get('/api/productos/filtrar', (req, res) => {
     `;
     let params = [];
 
-    // 0. LÓGICA DE BÚSQUEDA (OPERADOR LIKE)
     if (busqueda) {
-        // Usa LIKE para buscar el término en nombre O descripción
         sql += ' AND (p.nombre LIKE ? OR p.descripcion LIKE ?)';
         const terminoBusqueda = '%' + busqueda + '%';
         params.push(terminoBusqueda, terminoBusqueda);
     }
 
-    // 1. Filtro por Categoría
     if (categoria && categoria !== 'todos') {
         sql += ' AND p.id_categoria = ?';
         params.push(categoria);
     }
 
-    // 2. Filtro por Precio Mínimo/Máximo
     if (precio_min && !isNaN(parseFloat(precio_min))) {
         sql += ' AND p.precio >= ?';
         params.push(parseFloat(precio_min));
@@ -183,7 +194,6 @@ app.get('/api/productos/filtrar', (req, res) => {
         params.push(parseFloat(precio_max));
     }
 
-    // 3. Ordenamiento
     if (orden === 'asc') {
         sql += ' ORDER BY p.precio ASC';
     } else if (orden === 'desc') {
@@ -192,7 +202,6 @@ app.get('/api/productos/filtrar', (req, res) => {
         sql += ' ORDER BY p.nombre ASC'; 
     }
 
-    // Ejecutar la consulta
     db.execute(sql, params, (err, results) => {
         if (err) {
             console.error('Error al filtrar productos (SQL FAILED):', err);
@@ -257,9 +266,9 @@ app.post('/api/carrito/agregar', checkAuth, (req, res) => {
     });
 });
 
-app.post('/api/carrito/eliminar', checkAuth, (req, res) => {
+app.post('/api/carrito/eliminar/:id_producto', checkAuth, (req, res) => {
     const userId = req.session.userId;
-    const { id_producto } = req.body;
+    const id_producto = req.params.id_producto; // Usamos params para la ruta DELETE
 
     getOrCreateCarritoId(userId, (err, id_carrito) => {
         if (err) return res.status(500).json({ error: 'Error de servidor.' });
@@ -278,7 +287,7 @@ app.get('/api/carrito', checkAuth, (req, res) => {
 
     const sql = `
         SELECT 
-            dc.id_detalle_carrito, dc.cantidad, p.id_producto, p.nombre, p.precio, (p.precio * dc.cantidad) AS subtotal
+            dc.id_detalle_carrito, dc.cantidad, p.id_producto, p.nombre, p.precio, p.imagen, (p.precio * dc.cantidad) AS subtotal
         FROM carrito c
         JOIN detalles_carrito dc ON c.id_carrito = dc.id_carrito
         JOIN productos p ON dc.id_producto = p.id_producto
@@ -287,14 +296,107 @@ app.get('/api/carrito', checkAuth, (req, res) => {
 
     db.execute(sql, [userId], (err, results) => {
         if (err) return res.status(500).json({ error: 'Error interno del servidor.' });
-        const total = results.reduce((sum, item) => sum + item.subtotal, 0).toFixed(2);
-        res.json({ items: results, total: total });
+        
+        // CORRECCIÓN: Usamos parseFloat y definimos el valor inicial (0) para evitar el TypeError
+        const rawTotal = results.reduce((sum, item) => sum + parseFloat(item.subtotal), 0);
+        const totalFormateado = rawTotal.toFixed(2);
+
+        res.json({ items: results, total: totalFormateado });
     });
 });
+
+// ==========================================================
+// RUTA DE CHECKOUT (POST /api/pedidos/crear)
+// ==========================================================
+
+app.post('/api/pedidos/crear', checkAuth, async (req, res) => {
+    const userId = req.session.userId;
+    // Datos de dirección y pago del formulario en carrito.html
+    const { direccion, estado, ciudad, cp, datos_pago } = req.body; 
+
+    if (!direccion || !estado || !ciudad || !cp) {
+        return res.status(400).json({ error: 'Faltan campos de dirección requeridos.' });
+    }
+
+    let connection;
+    try {
+        // 1. Obtener la conexión para la transacción
+        connection = await poolPromise.getConnection();
+        await connection.beginTransaction();
+
+        // 2. Obtener el ID del carrito del usuario
+        const [carritoResult] = await connection.query('SELECT id_carrito FROM carrito WHERE id_usuario = ?', [userId]);
+        if (carritoResult.length === 0) {
+            await connection.rollback();
+            return res.status(400).json({ error: 'No se encontró el carrito asociado.' });
+        }
+        const id_carrito = carritoResult[0].id_carrito;
+        
+        // 3. Obtener los ítems del carrito y calcular el total
+        const [carritoItems] = await connection.query(`
+            SELECT 
+                dc.id_producto, dc.cantidad, p.precio 
+            FROM detalles_carrito dc
+            JOIN productos p ON dc.id_producto = p.id_producto
+            WHERE dc.id_carrito = ?
+        `, [id_carrito]);
+        
+        if (carritoItems.length === 0) {
+            await connection.rollback();
+            return res.status(400).json({ error: 'El carrito está vacío. Agregue productos para realizar un pedido.' });
+        }
+
+        const total = carritoItems.reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
+        
+        // 4. Insertar el pedido principal en la tabla `pedidos`
+        const [resultadoPedido] = await connection.query(`
+            INSERT INTO pedidos (id_usuario, fecha, total, direccion, estado, ciudad, cp)
+            VALUES (?, NOW(), ?, ?, ?, ?, ?)
+        `, [userId, total, direccion, estado, ciudad, cp]);
+
+        const id_pedido = resultadoPedido.insertId;
+
+        // 5. Insertar los detalles del pedido en `detalles_pedido`
+        const detalles = carritoItems.map(item => [
+            id_pedido, 
+            item.id_producto, 
+            item.cantidad, 
+            item.precio
+        ]);
+        
+        // Usamos poolPromise para la inserción de múltiples filas
+        await connection.query(
+            'INSERT INTO detalles_pedido (id_pedido, id_producto, cantidad, precio_unitario) VALUES ?',
+            [detalles]
+        );
+
+        // 6. Vaciar el carrito (Eliminar los ítems de detalles_carrito)
+        await connection.query('DELETE FROM detalles_carrito WHERE id_carrito = ?', [id_carrito]);
+
+        // 7. Si todo es correcto, confirmar la transacción
+        await connection.commit();
+        
+        res.status(201).json({ 
+            message: 'Pedido realizado con éxito.', 
+            id_pedido: id_pedido,
+            total: total.toFixed(2)
+        });
+
+    } catch (error) {
+        if (connection) {
+            await connection.rollback(); // Revertir cambios si algo falla
+        }
+        console.error('Error al crear pedido (Transacción fallida):', error);
+        res.status(500).json({ error: 'Error al procesar el pedido.' });
+    } finally {
+        if (connection) connection.release(); // Liberar la conexión
+    }
+});
+
 
 // ==========================================================
 // INICIAR EL SERVIDOR
 // ==========================================================
 app.listen(PORT, () => {
-    console.log(`🚀 Servidor Node.js corriendo en http://localhost:${PORT}`);
+    console.log(`Servidor Node.js corriendo en http://localhost:${PORT}`);
 });
