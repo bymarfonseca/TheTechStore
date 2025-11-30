@@ -82,6 +82,19 @@ const checkAdmin = (req, res, next) => {
     }
 };
 
+//Ruta para mostrar los usuarios en la pagina crud de administrador de usuarios
+// En server.js, asegúrate de que esta ruta exista y esté protegida:
+app.get('/api/admin/usuarios/all', checkAdmin, async (req, res) => {
+    try {
+        // Selecciona todos los campos necesarios para la tabla
+        const [usuarios] = await poolPromise.query('SELECT id_usuario, nombre, email, rol, telefono FROM usuarios ORDER BY id_usuario ASC');
+        res.json(usuarios);
+    } catch (error) {
+        console.error('Error al obtener lista de usuarios:', error);
+        res.status(500).json({ error: 'Error interno del servidor.' });
+    }
+});
+
 // ==========================================================
 // RUTAS DE AUTENTICACIÓN (LOGIN, REGISTRO, SESIÓN Y LOGOUT)
 // ==========================================================

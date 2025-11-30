@@ -15,6 +15,7 @@
             Añadir Nuevo Administrador
         </button>
         
+        <div id="loading" class="text-info">Cargando usuarios...</div>
         <div id="usersTableContainer">
             <table class="table table-striped">
                 <thead>
@@ -23,6 +24,7 @@
                         <th>Nombre</th>
                         <th>Email</th>
                         <th>Rol Actual</th>
+                        <th>Teléfono</th>
                         <th>Acción</th>
                     </tr>
                 </thead>
@@ -70,10 +72,16 @@
         const API_URL = 'http://localhost:3000';
         const tbody = document.getElementById('usersTableBody');
         const addForm = document.getElementById('addAdminForm');
+        const errorMsg = document.getElementById('errorMsg');
+        const loading = document.getElementById('loading');
+
 
         async function cargarTodosLosUsuarios() {
+            loading.style.display = 'block';
+            errorMsg.classList.add('d-none');
+            
             try {
-                // Llama a la nueva ruta que lista todos los usuarios
+                // Llama a la ruta que lista TODOS los usuarios
                 const response = await fetch(`${API_URL}/api/admin/usuarios/all`, { credentials: 'include' });
                 
                 if (response.status === 403) {
@@ -82,13 +90,22 @@
                     return;
                 }
                 
+                if (!response.ok) {
+                    throw new Error(`Error HTTP: ${response.status}`);
+                }
+
                 const usuarios = await response.json();
                 tbody.innerHTML = ''; 
+
+                if (usuarios.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6">No hay usuarios registrados.</td></tr>';
+                    return;
+                }
 
                 usuarios.forEach(u => {
                     const esAdmin = u.rol === 'admin';
                     
-                    // Botón condicional: Promover (Success) o Degradar (Warning)
+                    // Condición para PROMOCIÓN o DEGRADACIÓN
                     const actionButton = esAdmin 
                         ? `<button class="btn btn-warning btn-sm demote-user" data-id="${u.id_usuario}">Degradar</button>`
                         : `<button class="btn btn-success btn-sm promote-user" data-id="${u.id_usuario}">Promover</button>`;
@@ -99,14 +116,17 @@
                         <td>${u.nombre}</td>
                         <td>${u.email}</td>
                         <td><span class="badge bg-${esAdmin ? 'danger' : 'secondary'}">${u.rol.toUpperCase()}</span></td>
+                        <td>${u.telefono || 'N/A'}</td>
                         <td>${actionButton}</td>
                     `;
                 });
 
             } catch (error) {
                 console.error('Error al cargar usuarios:', error);
-                document.getElementById('errorMsg').textContent = `Error: No se pudieron cargar los usuarios.`;
-                document.getElementById('errorMsg').classList.remove('d-none');
+                errorMsg.textContent = `Error: No se pudieron cargar los usuarios. Verifique que la ruta de API /api/admin/usuarios/all esté activa.`;
+                errorMsg.classList.remove('d-none');
+            } finally {
+                loading.style.display = 'none';
             }
         }
 
@@ -142,7 +162,7 @@
             }
         });
 
-        // Listener global para PROMOVER o DEGRADAR
+        // Listener global para PROMOVER o DEGRADAR (PUT)
         tbody.addEventListener('click', async (e) => {
             const target = e.target;
             const id_usuario = target.getAttribute('data-id');
@@ -150,6 +170,7 @@
 
             let url = '';
             let action = '';
+            let method = 'PUT';
 
             if (target.classList.contains('promote-user')) {
                 action = 'Promover';
@@ -165,12 +186,12 @@
 
             try {
                 const response = await fetch(url, {
-                    method: 'PUT',
+                    method: method,
                     credentials: 'include'
                 });
 
                 if (response.ok) {
-                    alert(`Usuario #${id_usuario} ha sido ${action === 'Promover' ? 'ascendido' : 'degradado'} correctamente.`);
+                    alert(`Usuario #${id_usuario} ha sido ${action === 'Promover' ? 'ascendido' : 'degradado'} correctamente. (Recuerda que el usuario degradado debe cerrar y volver a iniciar sesión para que el cambio surta efecto).`);
                     cargarTodosLosUsuarios();
                 } else {
                     const data = await response.json();
